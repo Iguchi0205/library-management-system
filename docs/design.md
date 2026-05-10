@@ -7,13 +7,22 @@
 
 ## クラス図
 
-```mermaid
+````mermaid
 classDiagram
+    class LibraryItem {
+        <<abstract>>
+        #id: String
+        #title: String
+        #status: ItemStatus
+        +lend()
+        +returnItem()
+        +getLendingPeriodDays()* int
+    }
+    
     class Book {
         -isbn: String
-        -title: String
         -author: String
-        -status: BookStatus
+        +getLendingPeriodDays() int
     }
     
     class User {
@@ -25,13 +34,13 @@ classDiagram
     class Lending {
         -lendingId: String
         -user: User
-        -book: Book
+        -item: LibraryItem
         -lendDate: LocalDate
         -dueDate: LocalDate
         -returnedDate: LocalDate
     }
     
-    class BookStatus {
+    class ItemStatus {
         <<enumeration>>
         AVAILABLE
         LENT_OUT
@@ -44,29 +53,36 @@ classDiagram
         SENIOR
     }
     
+    LibraryItem <|-- Book : 継承
     Lending o-- User : 借りた人
-    Lending o-- Book : 借りた本
-    Book ..> BookStatus : 使用
+    Lending o-- LibraryItem : 借りた資料
+    LibraryItem ..> ItemStatus : 使用
     User ..> UserType : 使用
-```
+````
 
 ## クラスの責務
 
+### LibraryItem（資料：抽象クラス）
+- 図書館で扱う「資料」全般の親クラス
+- 全ての資料が共通で持つ項目（ID、タイトル、貸出状態）と振る舞い（貸出・返却処理）を定義
+- 抽象メソッド `getLendingPeriodDays()` により、資料種別ごとに異なる貸出期間を子クラスで実装させる
+
 ### Book（本）
-- 蔵書1冊を表すクラス
-- ISBN・タイトル・著者・現在の貸出状態を保持する
+- LibraryItemを継承する具体クラス
+- 本固有の項目（ISBN、著者）を保持する
+- 貸出期間は14日間（getLendingPeriodDays()で実装）
 
 ### User（利用者）
 - 図書館の利用者1人を表すクラス
 - 利用者ID・氏名・利用者区分を保持する
 
 ### Lending（貸出記録）
-- 「誰が、どの本を、いつ借りて、いつ返したか」を記録するクラス
-- UserとBookを集約関係で参照する
+- 「誰が、どの資料を、いつ借りて、いつ返したか」を記録するクラス
+- UserとLibraryItem（種別問わず）を集約関係で参照する
 - 返却日（returnedDate）が null の場合は「貸出中」、値がある場合は「返却済み」と判定する
 
-### BookStatus（列挙型）
-- 本の貸出状態を表す
+### ItemStatus（列挙型）
+- 資料の貸出状態を表す
 - AVAILABLE（貸出可能）/ LENT_OUT（貸出中）
 
 ### UserType（列挙型）
@@ -75,6 +91,14 @@ classDiagram
 - 区分により貸出可能冊数や貸出期間を変える設計とする
 
 ## 設計上の判断
+
+### 抽象クラスによる継承構造の採用
+資料種別（本・雑誌・DVD）に共通する項目（ID、タイトル、状態）と処理（貸出・返却）を
+LibraryItem 抽象クラスに集約し、各種別はこれを継承する設計とした。
+理由：
+- 共通コードの重複を排除（DRY原則）
+- 種別固有の振る舞い（貸出期間など）を抽象メソッドで強制的に実装させ、実装漏れを防止
+- 将来的な資料種別の追加に対して、親クラスを変更せずに対応可能
 
 ### enumの採用
 状態や区分のように「決まった値しか取らない」項目は、String型ではなくenum型で表現した。
