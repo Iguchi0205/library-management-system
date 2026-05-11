@@ -24,6 +24,17 @@ classDiagram
         -author: String
         +getLendingPeriodDays() int
     }
+       class Magazine {
+        -issueNumber: int
+        -publisher: String
+        +getLendingPeriodDays() int
+    }
+    
+    class DVD {
+        -director: String
+        -durationMinutes: int
+        +getLendingPeriodDays() int
+    }
     
     class User {
         -userId: String
@@ -54,6 +65,8 @@ classDiagram
     }
     
     LibraryItem <|-- Book : 継承
+    LibraryItem <|-- Magazine : 継承
+    LibraryItem <|-- DVD : 継承
     Lending o-- User : 借りた人
     Lending o-- LibraryItem : 借りた資料
     LibraryItem ..> ItemStatus : 使用
@@ -71,6 +84,15 @@ classDiagram
 - LibraryItemを継承する具体クラス
 - 本固有の項目（ISBN、著者）を保持する
 - 貸出期間は14日間（getLendingPeriodDays()で実装）
+### Magazine（雑誌）
+- LibraryItemを継承する具体クラス
+- 雑誌固有の項目（号数、出版社）を保持する
+- 貸出期間は7日間（getLendingPeriodDays()で実装）
+
+### DVD（DVD）
+- LibraryItemを継承する具体クラス
+- DVD固有の項目（監督、再生時間）を保持する
+- 貸出期間は5日間（getLendingPeriodDays()で実装）
 
 ### User（利用者）
 - 図書館の利用者1人を表すクラス
